@@ -1,0 +1,49 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2580
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs32 \cf2 \expnd0\expndtw0\kerning0
+\'a0\
+with active_patients as\
+(\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 select distinct patient\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 from encounters as e\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 join patients as pat\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 \'a0 on e.patient = pat.id\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 where start between '2020-01-01 00:00' and '2022-12-31 23:59'\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 \'a0 and pat.deathdate is null\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 \'a0 and  EXTRACT(EPOCH FROM age('2022-12-31',pat.birthdate)) / 2592000\
+),\
+\'a0\
+flu_shot_2022 as\
+(\
+select patient, min(date) as earliest_flu_shot_2022 \
+from immunizations\
+where code = '5302'\
+\'a0 and date between '2022-01-01 00:00' and '2022-12-31 23:59'\
+group by patient\
+)\
+\'a0\
+select pat.birthdate\
+\'a0\'a0\'a0\'a0\'a0 ,pat.race\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 \'a0 ,pat.county\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 \'a0 ,pat.id\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 \'a0 ,pat.first\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 \'a0 ,pat.last\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 \'a0 ,pat.gender\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 \'a0 ,extract(YEAR FROM age('12-31-2022', birthdate)) as age\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 \'a0 ,flu.earliest_flu_shot_2022\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 \'a0 ,flu.patient\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 \'a0 ,case when flu.patient is not null then 1 \
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 \'a0\'a0 else 0\
+\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0\'a0 \'a0\'a0 end as flu_shot_2022\
+from patients as pat\
+left join flu_shot_2022 as flu\
+\'a0 on pat.id = flu.patient\
+where 1=1\
+\'a0 and pat.id in (select patient from active_patients)\
+}
